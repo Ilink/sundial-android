@@ -32,7 +32,7 @@ Java_com_wallpaper_sundial_SundialWallpaperService_getSunPos( JNIEnv* env,
 	double JD = get_jd(year, month, day);
 
 	double time = get_local();
-	// time = 11.0*60.0;
+	// time = 17.0*60.0;
 	s_coord sun_pos = get_sun_pos(JD, lat, lng , time, tz);
 
 	jdoubleArray jresult;
