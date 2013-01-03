@@ -14,7 +14,7 @@ Java_com_wallpaper_sundial_Sundial_stringFromJNI( JNIEnv* env,
 }
 
 jdoubleArray
-Java_com_wallpaper_sundial_Sundial_getSunPos( JNIEnv* env,
+Java_com_wallpaper_sundial_SundialWallpaperService_getSunPos( JNIEnv* env,
                                               jobject self,
                                               jdouble lat,
                                               jdouble lng )
