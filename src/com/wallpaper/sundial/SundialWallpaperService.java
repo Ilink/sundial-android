@@ -88,11 +88,24 @@ public class SundialWallpaperService extends WallpaperService {
 		   try {
 		      c = holder.lockCanvas();
 		      if (c != null) {
+		      	double lng, lat;
+		      	if(location != null){
+		      	    lat = location.getLatitude();
+		      	    lng = location.getLongitude();
+		      	} else {
+		      	    lat = 37.871592;
+		      	    lng = -122.2937;
+		      	}
+		      	
+		      	double[] sunPos = getSunPos(lat, lng);
+
 		    	 //android.os.Debug.waitForDebugger(); 
 		    	 Paint p = new Paint();
 		         p.setTextSize(20);
 		 		 p.setAntiAlias(true);
-		 		 String text = "system time: "+Long.toString(System.currentTimeMillis());
+		 		 // String text = "system time: "+Long.toString(System.currentTimeMillis());
+		 		 String text = ( "Elevation: " + sunPos[0] + 
+                    			 "\nAzimuth: " + sunPos[1]);
 		         float w = p.measureText(text, 0, text.length());
 		         int offset = (int) w / 2;
 				 int x = c.getWidth()/2 - offset;
