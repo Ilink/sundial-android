@@ -6,6 +6,14 @@ import android.graphics.Paint;
 import android.os.Handler;
 import android.service.wallpaper.WallpaperService;
 import android.view.SurfaceHolder;
+import android.app.Activity;
+import android.os.Bundle;
+import android.content.Context;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import java.util.List;
 
 public class SundialWallpaperService extends WallpaperService {
 
@@ -13,10 +21,61 @@ public class SundialWallpaperService extends WallpaperService {
 	public Engine onCreateEngine() {
 		return new SundialWallpaperEngine();
 	}
+
+	static {
+	    System.loadLibrary("sundial");
+	}
 	
 	private class SundialWallpaperEngine extends Engine {
 		private boolean mVisible = false;
 		private final Handler mHandler = new Handler();
+
+		// private LocationManager mgr = null;
+		private LocationManager mgr = (LocationManager) getSystemService(LOCATION_SERVICE);
+		private LocationListener onLocationChange = new LocationListener() {
+		    public void onLocationChanged(Location location) {
+		        update(location);
+		    }
+		    
+		    public void onProviderDisabled(String provider) {
+		      // required for interface, not used
+		    }
+		    
+		    public void onProviderEnabled(String provider) {
+		      // required for interface, not used
+		    }
+		    
+		    public void onStatusChanged(String provider, int status,
+		                                  Bundle extras) {
+		      // required for interface, not used
+		    }
+		};
+
+		private void update(Location location){
+		    double lng, lat;
+		    if(location != null){
+		        lat = location.getLatitude();
+		        lng = location.getLongitude();
+		    } else {
+		        lat = 37.871592;
+		        lng = -122.2937;
+		    }
+		    
+		    double[] sunPos = getSunPos(lat, lng);
+		}
+
+		@Override
+		public void onCreate(SurfaceHolder surfaceHolder)
+		{
+		    // super.onCreate(savedInstanceState);
+		    // mgr = (LocationManager) getSystemService(LOCATION_SERVICE);
+		    mgr.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+		                               3600000, 1000,
+		                               onLocationChange);
+		}
+
+		public native double[]  getSunPos(double lat, double lng);
+
 		private final Runnable mUpdateDisplay = new Runnable() {
 		@Override
 		public void run() {
@@ -86,19 +145,6 @@ public class SundialWallpaperService extends WallpaperService {
 
 
 
-
-// package com.wallpaper.sundial;
-
-// import android.app.Activity;
-// import android.widget.TextView;
-// import android.os.Bundle;
-// import android.content.Context;
-// import android.location.Criteria;
-// import android.location.Location;
-// import android.location.LocationListener;
-// import android.location.LocationManager;
-// import java.util.List;
-
 // public class Sundial extends Activity
 // {
 //     private TextView tv = null;
@@ -139,7 +185,6 @@ public class SundialWallpaperService extends WallpaperService {
 //         setContentView(tv);
 //     }
 
-//     /** Called when the activity is first created. */
 //     @Override
 //     public void onCreate(Bundle savedInstanceState)
 //     {
@@ -153,18 +198,9 @@ public class SundialWallpaperService extends WallpaperService {
 //         // lng = -122.2937;
 //     }
 
-//     @Override
-//     public void onResume() {
-//         super.onResume();
-
-        
-//     }
-
-//     public native int stringFromJNI();
 //     public native double[]  getSunPos(double lat, double lng);
 
 //     static {
 //         System.loadLibrary("sundial");
 //     }
 // }
-
