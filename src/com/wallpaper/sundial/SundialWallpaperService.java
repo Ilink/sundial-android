@@ -24,6 +24,7 @@ public class SundialWallpaperService extends WallpaperService {
     }
 
     public native double[]  getSunPos(double lat, double lng);
+    public native double[]  getMoonPos(double lat, double lng);
 
     static {
         System.loadLibrary("sundial");
@@ -82,6 +83,35 @@ public class SundialWallpaperService extends WallpaperService {
         public void run() {
             draw();
         }};
+
+        private double testMoonPos(double lat, double lng){
+            double jd = 2456296.74972;
+            double T = (jd - 2451545.0) / 36525.0;
+            // T = -0.0862137805;
+            double eps = 23.0 + 26.0/60.0 + 21.448/3600.0 - 
+                        (46.8150*T+ 0.00059*T*T- 0.001813*T*T*T)/3600.0;
+            double X = Math.cos(lat)*Math.cos(lng);
+            double Y = (Math.cos(eps)*Math.cos(lat)*Math.sin(lng)) - Math.sin(eps)*Math.sin(lat);
+            double Z = (Math.sin(eps)*Math.cos(lat)*Math.sin(lng)) - Math.cos(eps)*Math.sin(lat);
+            double R = Math.sqrt(1.0-(Z*Z));
+
+            double delta = (180.0/Math.PI)*Math.atan2(Z,R); // in degrees
+            double RA = (24.0/Math.PI)*Math.atan2(Y,X+R); // in hours
+
+            double theta0 = 280.46061837 + 360.98564736629*(jd-2451545.0) + 0.000387933*T*T - (T*T*T/38710000.0); // degrees
+
+            double theta = theta0 + lng;
+            double tau = theta - RA;
+
+            double h = Math.asin(Math.sin(lat )*Math.sin(delta) + Math.cos(lat)*Math.cos(delta)*Math.cos(tau));
+            double az = Math.atan2(-Math.sin(tau), Math.cos(lat)*Math.tan(delta) - Math.sin(lat)*Math.cos(tau));
+
+            // note moon distance in AU
+            double horParal = 8.794 / (384400.0/14959787E6); // horizontal parallax (arcseconds)
+            double p = Math.cos(h)*Math.sin(horParal/3600.0); // parallax in altitude (degrees)
+
+            return h;
+        }
     
         private void draw() {
                 
@@ -96,12 +126,14 @@ public class SundialWallpaperService extends WallpaperService {
                 lng = -122.2937;
                 
                 double[] sunPos = getSunPos(lat, lng);
-                 //android.os.Debug.waitForDebugger(); 
-                 Paint p = new Paint();
-                 p.setTextSize(20);
-                 p.setAntiAlias(true);
-                 // String text = ( "Elevation: " + sunPos[0] + 
-                 //                 "\nAzimuth: " + sunPos[1]);
+                double[] moonPos = getMoonPos(lat, lng);
+                double test = testMoonPos(lat, lng);
+                //android.os.Debug.waitForDebugger(); 
+                Paint p = new Paint();
+                p.setTextSize(20);
+                p.setAntiAlias(true);
+                // String text = ( "Elevation: " + sunPos[0] + 
+                //                 "\nAzimuth: " + sunPos[1]);
 
                  double midpoint = c.getWidth() / 2.0;
 
@@ -109,8 +141,10 @@ public class SundialWallpaperService extends WallpaperService {
                 int _y = (int) Math.round(sunPos[0] / 90.0 * c.getHeight());
                 // int _y = (int) Math.round(sunPos[0]);
                 int y = c.getHeight() - _y;
+                y = 300;
 
                 String text = y+"";
+                text = moonPos[0]+"";
 
                  // x = c.getWidth() / 2;
                  // y = c.getHeight() /2;

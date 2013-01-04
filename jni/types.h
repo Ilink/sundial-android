@@ -1,7 +1,10 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+extern double const d2r;
+extern double const r2d;
 extern double const PI;
+extern double const pi;
 extern double const jd2k;
 
 typedef struct {

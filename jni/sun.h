@@ -6,5 +6,6 @@ double get_ha(int hour);
 double get_hla(double lat, double ha);
 double get_jd(int year, int month, int day);
 double get_local();
+double calc_obliq_corr(double t);
 
 #endif

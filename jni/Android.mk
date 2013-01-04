@@ -7,6 +7,7 @@ LOCAL_MODULE    := sundial
 LOCAL_SRC_FILES := sundial.c \
 				   sun.c \
 				   types.c \
+				   moon.c
 
 LOCAL_LDLIBS := -llog
 

@@ -57,22 +57,16 @@ double au_to_km(double au){
 
 // uses UT, not local time
 double get_jd(int year, int month, int day){
-	// FILE* file = fopen("../log/JD.txt", "a+");
 	double UT;
-	UT = get_ut();
-	
+	UT = get_ut();	
 
 	time_t t = time(NULL);
 	struct tm *now = localtime(&t);
-	// int day = now->tm_mday;
 
 	int a = floor(year/100.0);
 	int b = 2 - a + floor(a/4.0);
 	
 	double jd = floor(365.25*(year + 4716))+ floor(30.6001*(month+1))+day+b-1524.5;
-	// fprintf(file, "a: %i\t b: %i\t day: %i\t ut: %f\t jd: %f\n", a, b, day, UT, jd);
-	// fclose(file);
-
 	return jd;
 }
 
@@ -126,10 +120,6 @@ double calc_sun_app_lng(double t){
 	double o = l0 + c;
 	double omega = 125.04 - 1934.136 * t;
 	double lambda = o - 0.00569 - 0.00478 * sin(deg_to_rad(omega));
-//printf("app_lng l0: %f\n", l0);
-//printf("app_lng c: %f\n", c);
-//printf("app_lng o: %f\n", o);
-//printf("app_lng omega: %f\n", omega);
 	return lambda;
 }
 
@@ -155,44 +145,26 @@ double calc_declination(double t){
 	double e = calc_obliq_corr(t);
 	double lambda = calc_sun_app_lng(t);
 
-//printf("decl e: %f\n", e);
-//printf("decl lambda: %f\n", lambda);
-
 	double sint = sin(deg_to_rad(e)) * sin(deg_to_rad(lambda));
 	double theta = rad_to_deg(asin(sint));
 	return theta;
 }
 
 double calc_eq_time(double t){
-	// FILE *file = fopen("../log/time.txt", "a+");
 	double epsilon = calc_obliq_corr(t);
-	// fprintf(file, "epsilon: %f\n", epsilon);
 	double l = calc_mean_lng_sun(t);
-	// fprintf(file, "l: %f\n", l);
 	double e = 0.016708634 - t * (0.000042037 + 0.0000001267 * t);
-	// fprintf(file, "e: %f\n", e);
 	double m = calc_mean_anomaly_sun(t);
-	// fprintf(file, "m: %f\n", m);
-
 
 	double y = tan(deg_to_rad(epsilon)/2.0);
-	// fprintf(file, "y: %f\n", deg_to_rad(epsilon)/2.0);
 	y *= y;
-	// fprintf(file, "y: %f\n", y);
 
 	double test = 2.0 * deg_to_rad(l);
 	double sin2l0 = sin(test);
-	// double sin2l0 = sin(2.0 * deg_to_rad(l));
 	double sinm   = sin(deg_to_rad(m));
 	double cos2l0 = cos(2.0 * deg_to_rad(l));
 	double sin4l0 = sin(4.0 * deg_to_rad(l));
 	double sin2m  = sin(2.0 * deg_to_rad(m));
-
-	// fprintf(file, "sin2l0: %f\n", sin2l0);
-	// fprintf(file, "sinm: %f\n", sinm);
-	// fprintf(file, "cos2l0: %f\n", cos2l0);
-	// fprintf(file, "sin4l0: %f\n", sin4l0);
-	// fprintf(file, "sin2m: %f\n", sin2m);
 
 	sin2l0 = -0.5486700881092892;
 	sinm = -0.8678243339510023;
@@ -201,83 +173,43 @@ double calc_eq_time(double t){
 	sin2m = 0.8623937246406765;
 
 	double Etime = y * sin2l0 - 2.0 * e * sinm + 4.0 * e * y * sinm * cos2l0 - 0.5 * y * y * sin4l0 - 1.25 * e * e * sin2m;
-	// fprintf(file, "etime: %f\t", sin2l0);
-	// fclose(file);
 	return rad_to_deg(Etime)*4.0; // in minutes of time
 }
 
 s_coord get_sun_pos(double jd, double lat, double lng, double hour, double tz){
-	// FILE *file;
-	// file = fopen("../log/time.txt","a+");
-
-	// // hour = increment;
-	// if(hour == 25){
-	// 	hour = get_ut();
-	// 	hour = get_local()*60;
-	// 	// hour = get_local()+increment;
-	// } else {
-	// 	hour += increment;
-	// }
-
-	// fprintf(file, "HOURR: %f\n", hour);
 
 	double time;
 	time = jd + hour/1440.0 - tz/24.0; // adjust JD for the hour
 	time = (time - 2451545.0)/36525.0;
-	// fprintf(file, "time: %f\n", time);
-
-	// fprintf(file, "jd: %f\thour: %f\t\n", jd, hour);
-
 	double eqtime = calc_eq_time(time);
-	// fprintf(file, "eqtime: %f\n", eqtime);
-
 	double delta = calc_declination(time);
-//printf("delta (decl): %f\n", delta);
 	double solar_time_fix = eqtime + 4.0 * lng - 60.0 * tz;
-	// double true_solar_time = hour + (eqtime + 4.0 * lng - 60.0 * tz);
 	double true_solar_time = hour + solar_time_fix;
-	// printf("solar_time_fix: %f\n", solar_time_fix);
-	// printf("uncorr true solar time: %f\n", true_solar_time);
 	while(true_solar_time > 1440) true_solar_time -= 1440.0;
 	double ha = true_solar_time / 4.0 - 180.0;
 	if(ha < -180) ha += 360.0;
-	// fprintf(file, "true solar time: %f\n", true_solar_time);
-
-//printf("ha: %f\n", ha);
-
 	double r = calc_sun_rad_vector(time);
 	double ha_rad = deg_to_rad(ha);
-	// fprintf(file, "ha_rad: %f\n", ha_rad);
 	double cos_zenith = sin(deg_to_rad(lat)) * sin(deg_to_rad(delta)) + cos(deg_to_rad(lat)) * cos(deg_to_rad(delta)) * cos(ha_rad);
-
-	// fprintf(file, "(pre) cos zenith: %f\n", cos_zenith);
-
 	if(cos_zenith > 1.0) cos_zenith = 1.0;
 	else if (cos_zenith < -1.0) cos_zenith = -1.0;
 	double zenith = rad_to_deg(acos(cos_zenith));
-//printf("cos zenith: %f\n", cos_zenith);
-	// fprintf(file, "zenith: %f\n", zenith);
 
 	double azimuth_denom = cos(deg_to_rad(lat))*sin(deg_to_rad(zenith));
 	double azimuth;
 	if(fabs(azimuth_denom) > 0.001){
-	//printf("%s\n", "azi denon great than 0.001");
 		double azimuth_rad = ((sin(deg_to_rad(lat)) * cos(deg_to_rad(zenith))) - sin(deg_to_rad(delta))) / azimuth_denom;
 		if(fabs(azimuth_rad)>1.0) {
 			if(azimuth_rad < 0.0) azimuth_rad = -1.0;
 			else azimuth_rad = 1.0;
 		}
 		azimuth = 180.0 - rad_to_deg(acos(azimuth_rad));
-	//printf("azrad: %f\n", azimuth_rad);
 		if(ha > 0.0) azimuth = -azimuth;
 	} else {
-	//printf("%s\n", "azi denon less than 0.001");
 		if(lat > 0.0) azimuth = 180.0;
 		else azimuth = 0.0;
 	}
 	if (azimuth < 0) azimuth += 360.0;
-
-//printf("azimuth denom %f\n", azimuth_denom);
 
 	double ref_corr;
 	double eo_ele = 90.0 - zenith;
@@ -294,18 +226,13 @@ s_coord get_sun_pos(double jd, double lat, double lng, double hour, double tz){
 		}
 		ref_corr /= 3600.0;
 	}
-//printf("zenith %f\n", zenith);
 	double solar_zenith = zenith - ref_corr;
-//printf("solar zenith %f\n", solar_zenith);
-//printf("Refraction correction%f\n", ref_corr);
 
 	s_coord coord;
-//printf("Azimuth: %f\n", azimuth);
 	coord.azimuth = azimuth;
 	coord.r = r;
 	double el = floor((90.0-solar_zenith)*100+0.5)/100.0;
 	coord.elevation = el;
 
-	// fclose(file);
 	return coord;
 }
