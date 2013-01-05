@@ -112,10 +112,13 @@ public class SundialWallpaperService extends WallpaperService {
 
             return h;
         }
+
+        // private double testMoonPos2(double lat, double lng){
+
+        // }
     
         private void draw() {
-                
-
+            
            SurfaceHolder holder = getSurfaceHolder();
            Canvas c = null;
            try {
@@ -144,7 +147,7 @@ public class SundialWallpaperService extends WallpaperService {
                 y = 300;
 
                 String text = y+"";
-                text = moonPos[0]+"";
+                text = moonPos[0]+"  "+moonPos[1];
 
                  // x = c.getWidth() / 2;
                  // y = c.getHeight() /2;
@@ -152,7 +155,7 @@ public class SundialWallpaperService extends WallpaperService {
                  p.setColor(Color.BLACK);
                  c.drawRect(0, 0, c.getWidth(), c.getHeight(), p);
                  p.setColor(Color.WHITE);
-                 c.drawText(text, x, y, p);
+                 c.drawText(text, 0, y, p);
               }
            } finally {
               if (c != null)

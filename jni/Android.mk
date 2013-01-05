@@ -9,6 +9,6 @@ LOCAL_SRC_FILES := sundial.c \
 				   types.c \
 				   moon.c
 
-LOCAL_LDLIBS := -llog
+LOCAL_LDLIBS := -L$(SYSROOT)/usr/lib -llog 
 
 include $(BUILD_SHARED_LIBRARY)
