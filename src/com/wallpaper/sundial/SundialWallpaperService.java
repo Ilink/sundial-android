@@ -87,39 +87,6 @@ public class SundialWallpaperService extends WallpaperService {
         public void run() {
             draw();
         }};
-
-        private double testMoonPos(double lat, double lng){
-            double jd = 2456296.74972;
-            double T = (jd - 2451545.0) / 36525.0;
-            // T = -0.0862137805;
-            double eps = 23.0 + 26.0/60.0 + 21.448/3600.0 - 
-                        (46.8150*T+ 0.00059*T*T- 0.001813*T*T*T)/3600.0;
-            double X = Math.cos(lat)*Math.cos(lng);
-            double Y = (Math.cos(eps)*Math.cos(lat)*Math.sin(lng)) - Math.sin(eps)*Math.sin(lat);
-            double Z = (Math.sin(eps)*Math.cos(lat)*Math.sin(lng)) - Math.cos(eps)*Math.sin(lat);
-            double R = Math.sqrt(1.0-(Z*Z));
-
-            double delta = (180.0/Math.PI)*Math.atan2(Z,R); // in degrees
-            double RA = (24.0/Math.PI)*Math.atan2(Y,X+R); // in hours
-
-            double theta0 = 280.46061837 + 360.98564736629*(jd-2451545.0) + 0.000387933*T*T - (T*T*T/38710000.0); // degrees
-
-            double theta = theta0 + lng;
-            double tau = theta - RA;
-
-            double h = Math.asin(Math.sin(lat )*Math.sin(delta) + Math.cos(lat)*Math.cos(delta)*Math.cos(tau));
-            double az = Math.atan2(-Math.sin(tau), Math.cos(lat)*Math.tan(delta) - Math.sin(lat)*Math.cos(tau));
-
-            // note moon distance in AU
-            double horParal = 8.794 / (384400.0/14959787E6); // horizontal parallax (arcseconds)
-            double p = Math.cos(h)*Math.sin(horParal/3600.0); // parallax in altitude (degrees)
-
-            return h;
-        }
-
-        // private double testMoonPos2(double lat, double lng){
-
-        // }
     
         private void draw() {
             
@@ -136,7 +103,7 @@ public class SundialWallpaperService extends WallpaperService {
                 int sec = now.get(Calendar.SECOND);
                 int min = now.get(Calendar.MINUTE);
                 int hour = now.get(Calendar.HOUR_OF_DAY); // 24h format
-                // hour = (int) i;
+                hour = (int) i;
 
                 double[] sunPos = getSunPos(lat, lng);
                 double[] moonPos = getMoonPos(hour, min, sec, lat, lng);
@@ -154,7 +121,7 @@ public class SundialWallpaperService extends WallpaperService {
                 int x = (int) Math.round(moonPos[1] / 360.0 * c.getWidth());
                 int _y = (int) Math.round(moonPos[0] / 90.0 * c.getHeight());
 
-                Log.v("com.wallpaper.sundial", "android log: alt " + moonPos[0] + " azi "+ moonPos[1] + "i: "+i);
+                // Log.v("com.wallpaper.sundial", "android log: alt " + moonPos[0] + " azi "+ moonPos[1] + "i: "+i);
 
                 // int _y = (int) Math.round(sunPos[0]);
                 int y = c.getHeight() - _y;
@@ -165,9 +132,6 @@ public class SundialWallpaperService extends WallpaperService {
                 // 0 = altitude, 1 = azimuth
                 // text = moonPos[0]+"  "+moonPos[1];
                 text = "O";
-
-                // x = c.getWidth() / 2;
-                // y = c.getHeight() /2;
 
                 p.setColor(Color.BLACK);
                 c.drawRect(0, 0, c.getWidth(), c.getHeight(), p);
