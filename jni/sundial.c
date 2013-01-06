@@ -46,17 +46,24 @@ double get_time2(int hour, int min, int sec){
 	return (hour + min / 60.0) / 24.0;;
 }
 
+// yea, sun expects something different, not really ideal
+double get_sun_time(int hour, int min, int sec){
+	return hour*60.0 + min + sec/60.0;
+}
+
 jdoubleArray
 Java_com_wallpaper_sundial_SundialWallpaperService_getSunPos( JNIEnv* env,
                                               jobject self,
+                                              jint hour,
+                                              jint min,
+                                              jint sec,
                                               jdouble lat,
                                               jdouble lng )
 {
 	double tz = -8.0;
 	double JD = get_jd_wrapper();
 
-	double time = get_local();
-	// time = 17.0*60.0;
+	double time = get_sun_time(hour, min, sec);
 	s_coord sun_pos = get_sun_pos(JD, lat, lng , time, tz);
 
 	jdoubleArray jresult;
