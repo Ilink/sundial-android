@@ -42,6 +42,10 @@ double get_time(){
 	return time;
 }
 
+double get_time2(int hour, int min, int sec){
+	return (hour + min / 60.0) / 24.0;;
+}
+
 jdoubleArray
 Java_com_wallpaper_sundial_SundialWallpaperService_getSunPos( JNIEnv* env,
                                               jobject self,
@@ -72,10 +76,12 @@ Java_com_wallpaper_sundial_SundialWallpaperService_getSunPos( JNIEnv* env,
 jdoubleArray
 Java_com_wallpaper_sundial_SundialWallpaperService_getMoonPos( JNIEnv* env,
                                               jobject self,
+                                              jint hour,
+                                              jint min,
+                                              jint sec,
                                               jdouble lat,
                                               jdouble lng )
 {
-	// double d = get_jd_wrapper();
 	double d = timescale(2013, 1, 5);
 	double Ms = 356.0470 + 0.9856002585 * d;
 	Ms *= d2r;
@@ -91,9 +97,9 @@ Java_com_wallpaper_sundial_SundialWallpaperService_getMoonPos( JNIEnv* env,
 	lng *= d2r;
 	lat *= d2r;
 
-	UT = (22.0 + 30.0 / 60.0) / 24.0;
-	UT = 10.5 / 24.0;
-	UT = get_time();
+	UT = get_time2(hour, min, sec);
+	// UT = get_time2(17, 25, 0);
+
 	moonposition(d + UT, Ms, ws, &rm, &RAm, &Decm);
 	__android_log_print(ANDROID_LOG_ERROR, "com.wallpaper.sundial", "UT %f", UT);
 
@@ -108,10 +114,6 @@ Java_com_wallpaper_sundial_SundialWallpaperService_getMoonPos( JNIEnv* env,
 	AZm *= r2d;
 	Altm *= r2d;
 
-	/////////
-	double time = get_local();
-	// time = 22.0*60.0;
-	double JD = get_jd_wrapper();
 	double tz = -8.0;
 
 	jdoubleArray jresult;

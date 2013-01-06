@@ -14,6 +14,9 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import java.util.List;
+import java.util.Calendar;
+import java.util.TimeZone;
+import android.util.Log;
 // import java.lang.Math;
 
 public class SundialWallpaperService extends WallpaperService {
@@ -24,7 +27,7 @@ public class SundialWallpaperService extends WallpaperService {
     }
 
     public native double[]  getSunPos(double lat, double lng);
-    public native double[]  getMoonPos(double lat, double lng);
+    public native double[]  getMoonPos(int hour, int min, int sec, double lat, double lng);
 
     static {
         System.loadLibrary("sundial");
@@ -35,6 +38,7 @@ public class SundialWallpaperService extends WallpaperService {
     private class SundialWallpaperEngine extends Engine {
         private boolean mVisible = false;
         private final Handler mHandler = new Handler();
+        private double i = 0;
 
         // private LocationManager mgr = null;
         private LocationManager mgr = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -127,35 +131,49 @@ public class SundialWallpaperService extends WallpaperService {
                 double lng, lat;
                 lat = 37.871592;
                 lng = -122.2937;
-                
+
+                Calendar now = Calendar.getInstance(TimeZone.getDefault());
+                int sec = now.get(Calendar.SECOND);
+                int min = now.get(Calendar.MINUTE);
+                int hour = now.get(Calendar.HOUR_OF_DAY); // 24h format
+                hour = (int) i;
+
                 double[] sunPos = getSunPos(lat, lng);
-                double[] moonPos = getMoonPos(lat, lng);
-                double test = testMoonPos(lat, lng);
-                //android.os.Debug.waitForDebugger(); 
+                double[] moonPos = getMoonPos(hour, min, sec, lat, lng);
+
+                Log.v("com.wallpaper.sundial", "android log: hour " + hour + " min "+ min);
+
                 Paint p = new Paint();
                 p.setTextSize(20);
                 p.setAntiAlias(true);
-                // String text = ( "Elevation: " + sunPos[0] + 
-                //                 "\nAzimuth: " + sunPos[1]);
+                double midpoint = c.getWidth() / 2.0;
 
-                 double midpoint = c.getWidth() / 2.0;
+                // int x = (int) Math.round(sunPos[1] / 360.0 * c.getWidth());
+                // int _y = (int) Math.round(sunPos[0] / 90.0 * c.getHeight());
 
-                int x = (int) Math.round(sunPos[1] / 360.0 * c.getWidth());
-                int _y = (int) Math.round(sunPos[0] / 90.0 * c.getHeight());
+                int x = (int) Math.round(moonPos[1] / 360.0 * c.getWidth());
+                int _y = (int) Math.round(moonPos[0] / 90.0 * c.getHeight());
+
+                Log.v("com.wallpaper.sundial", "android log: alt " + moonPos[0] + " azi "+ moonPos[1] + "i: "+i);
+
                 // int _y = (int) Math.round(sunPos[0]);
                 int y = c.getHeight() - _y;
-                y = 300;
+                // y = 300;
 
-                String text = y+"";
-                text = moonPos[0]+"  "+moonPos[1];
+                // String text = x+", "+y+", i: "+i;
+                String text = moonPos[0]+", "+moonPos[1]+", i: "+i;
+                // 0 = altitude, 1 = azimuth
+                // text = moonPos[0]+"  "+moonPos[1];
+                // text = "O";
 
-                 // x = c.getWidth() / 2;
-                 // y = c.getHeight() /2;
+                // x = c.getWidth() / 2;
+                // y = c.getHeight() /2;
 
-                 p.setColor(Color.BLACK);
-                 c.drawRect(0, 0, c.getWidth(), c.getHeight(), p);
-                 p.setColor(Color.WHITE);
-                 c.drawText(text, 0, y, p);
+                p.setColor(Color.BLACK);
+                c.drawRect(0, 0, c.getWidth(), c.getHeight(), p);
+                p.setColor(Color.WHITE);
+                // c.drawText(text, 0, 300, p);
+                c.drawText(text, 0, 300, p);
               }
            } finally {
               if (c != null)
@@ -165,6 +183,8 @@ public class SundialWallpaperService extends WallpaperService {
            if (mVisible) {
                mHandler.postDelayed(mUpdateDisplay, 100);
            }
+           i+=0.05;
+           if( i > 24) i = 0;
         }
         
         @Override
