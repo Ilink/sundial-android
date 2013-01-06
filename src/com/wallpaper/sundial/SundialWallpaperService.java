@@ -136,7 +136,7 @@ public class SundialWallpaperService extends WallpaperService {
                 int sec = now.get(Calendar.SECOND);
                 int min = now.get(Calendar.MINUTE);
                 int hour = now.get(Calendar.HOUR_OF_DAY); // 24h format
-                hour = (int) i;
+                // hour = (int) i;
 
                 double[] sunPos = getSunPos(lat, lng);
                 double[] moonPos = getMoonPos(hour, min, sec, lat, lng);
@@ -164,7 +164,7 @@ public class SundialWallpaperService extends WallpaperService {
                 String text = moonPos[0]+", "+moonPos[1]+", i: "+i;
                 // 0 = altitude, 1 = azimuth
                 // text = moonPos[0]+"  "+moonPos[1];
-                // text = "O";
+                text = "O";
 
                 // x = c.getWidth() / 2;
                 // y = c.getHeight() /2;
@@ -172,8 +172,8 @@ public class SundialWallpaperService extends WallpaperService {
                 p.setColor(Color.BLACK);
                 c.drawRect(0, 0, c.getWidth(), c.getHeight(), p);
                 p.setColor(Color.WHITE);
+                c.drawText(text, x, y, p);
                 // c.drawText(text, 0, 300, p);
-                c.drawText(text, 0, 300, p);
               }
            } finally {
               if (c != null)
