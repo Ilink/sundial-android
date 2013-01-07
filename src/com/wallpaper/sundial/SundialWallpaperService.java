@@ -68,9 +68,7 @@ public class SundialWallpaperService extends WallpaperService {
             }
             
             public void onProviderDisabled(String provider) {}
-            
             public void onProviderEnabled(String provider) {}
-            
             public void onStatusChanged(String provider, int status, Bundle extras) {}
         };
 
@@ -104,7 +102,6 @@ public class SundialWallpaperService extends WallpaperService {
             surfaceHolder.setFormat(PixelFormat.RGBA_8888);
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-
             
             int colors[] = {0xFFEEFFFF, 0xFF2F3B47};
             bgGrad = new GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP, colors);
@@ -119,7 +116,6 @@ public class SundialWallpaperService extends WallpaperService {
             moonBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.moon, options);
             sunBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.sun, options);
             bgBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.bg, options);
-            moonBitmapSmall = Bitmap.createScaledBitmap(moonBitmap, 120, 120, false);
 
             mgr.requestLocationUpdates(LocationManager.GPS_PROVIDER,
                                        3600000, 1000,
@@ -127,94 +123,11 @@ public class SundialWallpaperService extends WallpaperService {
         }
 
         private final Runnable mUpdateDisplay = new Runnable() {
-        @Override
-        public void run() {
-            draw();
+            @Override
+            public void run() {
+                draw();
         }};
-    
-        private void draw() {
-            
-           SurfaceHolder holder = getSurfaceHolder();
-           holder.setFormat(PixelFormat.RGBA_8888);
 
-           Canvas c = null;
-           try {
-              c = holder.lockCanvas();
-              if (c != null) {
-                screenWidth = c.getWidth();
-                screenHeight = c.getHeight();
-                aspectRatio = (double) screenWidth / (double) screenHeight;
-                double scale = screenWidth / bgBitmap.getWidth();
-                // this could have fixed-aspect ratio scaling
-                bgBitmapSmall =  Bitmap.createScaledBitmap(bgBitmap, 
-                    screenWidth, 
-                    screenHeight, 
-                    false);
-
-                Calendar now = Calendar.getInstance(TimeZone.getDefault());
-                int sec = now.get(Calendar.SECOND);
-                int min = now.get(Calendar.MINUTE);
-                int hour = now.get(Calendar.HOUR_OF_DAY); // 24h format
-                // hour = (int) i;
-                // hour = 18;
-
-                double[] sunPos = getSunPos(hour, min, sec, lat, lng);
-                double[] moonPos = getMoonPos(hour, min, sec, lat, lng);
-
-                // p.setDither(true);
-                // p.setAntiAlias(true);
-                // p.setTextSize(20);
-                // double midpoint = c.getWidth() / 2.0;
-
-                Point moon = scaleCelestialPosition(moonBitmap, moonPos[1], moonPos[0], screenWidth, screenHeight);
-                Point sun = scaleCelestialPosition(sunBitmap, sunPos[1], sunPos[0], screenWidth, screenHeight);
-
-                int moonX = (int) Math.round(moonPos[1] / 360.0 * screenWidth);
-                int moonY = (int) Math.round(moonPos[0] / 90.0 * (screenHeight-celestialOffset));
-                moonY = screenHeight - moonY - celestialOffset;
-
-                int sunX = (int) Math.round(sunPos[1] / 360.0 * screenWidth);
-                int sunY = (int) Math.round(sunPos[0] / 90.0 * (screenHeight-celestialOffset));
-                sunY = screenHeight - sunY - celestialOffset;
-
-                Log.v("com.wallpaper.sundial", "android log: moon alt " + moonPos[0] + " moon azi "+ moonPos[1] + "i: "+i +"\n");
-                Log.v("com.wallpaper.sundial", "android log: sun alt " + sunPos[0] + " sun azi "+ sunPos[1] + "i: "+i +"\n");
-
-
-
-                // Drawing
-                ////////////////////////////
-
-                p.setColor(Color.BLACK);
-                c.drawRect(0, 0, c.getWidth(), c.getHeight(), p);
-                p.setColor(Color.WHITE);
-
-                bgGrad.setBounds(0,0,screenWidth,screenHeight);
-                bgGrad.draw(c);
-
-                moonX = (int) Math.round(moonX - moonBitmap.getWidth()/2.0);
-                moonY = (int) Math.round(moonY - moonBitmap.getHeight()/2.0);
-                c.drawBitmap(moonBitmap, moon.x, moon.y, p);
-
-                sunX = (int) Math.round(sunX - sunBitmap.getWidth()/2.0);
-                sunY = (int) Math.round(sunY - sunBitmap.getHeight()/2.0);
-                c.drawBitmap(sunBitmap, sun.x, sun.y, p);
-
-                int bgY = c.getHeight() - bgBitmapSmall.getHeight();
-                c.drawBitmap(bgBitmapSmall, 0, bgY, p);
-              }
-           } finally {
-              if (c != null)
-                 holder.unlockCanvasAndPost(c);
-           }
-           mHandler.removeCallbacks(mUpdateDisplay);
-           if (mVisible) {
-               mHandler.postDelayed(mUpdateDisplay, 100);
-           }
-           i += 0.5;
-           if( i > 24) i = 0;
-        }
-        
         @Override
         public void onVisibilityChanged(boolean visible) {
             mVisible = visible;
@@ -225,10 +138,20 @@ public class SundialWallpaperService extends WallpaperService {
             }
         }
         
-         @Override
-          public void onSurfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-             draw();
-          }
+        @Override
+        public void onSurfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+            screenWidth = width;
+            screenHeight = height;
+            aspectRatio = (double) screenWidth / (double) screenHeight;
+
+            // this could have fixed-aspect ratio scaling
+            bgBitmapSmall = Bitmap.createScaledBitmap(bgBitmap, 
+                screenWidth, 
+                screenHeight, 
+                false);
+
+            draw();
+        }
         
         @Override
         public void onSurfaceDestroyed(SurfaceHolder holder) {
@@ -239,9 +162,63 @@ public class SundialWallpaperService extends WallpaperService {
         
         @Override
         public void onDestroy() {
-             super.onDestroy();
-             mVisible = false;
-             mHandler.removeCallbacks(mUpdateDisplay);
+            super.onDestroy();
+            mVisible = false;
+            mHandler.removeCallbacks(mUpdateDisplay);
         }
-    }    
+    
+        private void draw() {
+            
+            SurfaceHolder holder = getSurfaceHolder();
+            holder.setFormat(PixelFormat.RGBA_8888);
+
+            Canvas c = null;
+            try {
+                c = holder.lockCanvas();
+                if (c != null) {
+                    Calendar now = Calendar.getInstance(TimeZone.getDefault());
+                    int sec = now.get(Calendar.SECOND);
+                    int min = now.get(Calendar.MINUTE);
+                    int hour = now.get(Calendar.HOUR_OF_DAY); // 24h format
+                    // hour = (int) i;
+                    // hour = 18;
+
+                    double[] sunPos = getSunPos(hour, min, sec, lat, lng);
+                    double[] moonPos = getMoonPos(hour, min, sec, lat, lng);
+
+                    Point moon = scaleCelestialPosition(moonBitmap, moonPos[1], moonPos[0], screenWidth, screenHeight);
+                    Point sun = scaleCelestialPosition(sunBitmap, sunPos[1], sunPos[0], screenWidth, screenHeight);
+
+                    Log.v("com.wallpaper.sundial", "android log: moon alt " + moonPos[0] + " moon azi "+ moonPos[1] + "i: "+i +"\n");
+                    Log.v("com.wallpaper.sundial", "android log: sun alt " + sunPos[0] + " sun azi "+ sunPos[1] + "i: "+i +"\n");
+
+                    // Drawing
+                    ////////////////////////////
+
+                    p.setColor(Color.BLACK);
+                    c.drawRect(0, 0, c.getWidth(), c.getHeight(), p);
+                    p.setColor(Color.WHITE);
+
+                    bgGrad.setBounds(0,0,screenWidth,screenHeight);
+                    bgGrad.draw(c);
+
+                    c.drawBitmap(moonBitmap, moon.x, moon.y, p);
+                    c.drawBitmap(sunBitmap, sun.x, sun.y, p);
+
+                    // int bgY = c.getHeight() - bgBitmapSmall.getHeight();
+                    c.drawBitmap(bgBitmapSmall, 0, 0, p);
+                }
+            } finally {
+                if (c != null)
+                holder.unlockCanvasAndPost(c);
+            }
+
+            mHandler.removeCallbacks(mUpdateDisplay);
+            if (mVisible) {
+                mHandler.postDelayed(mUpdateDisplay, 100);
+            }
+            i += 0.5;
+            if( i > 24) i = 0;
+        }
+    }
 }

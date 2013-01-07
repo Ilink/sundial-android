@@ -187,7 +187,6 @@ void altitude(double UT,
 	*AZ = azim;
 
 	__android_log_print(ANDROID_LOG_ERROR, "com.wallpaper.sundial", "gmst0 %f, L %f, LST %f, LHA %f, sin_h %f, RA %f, decl %f, lng %f, lat %f", GMST0, L, LST, LHA, sin_h, RA, Decl, lng, lat);
-
 	__android_log_print(ANDROID_LOG_ERROR, "com.wallpaper.sundial", "\n\nLNG %f !!!!!!!, LAT %f !!!!!!!\n\n", lng, lat);
 }
 
