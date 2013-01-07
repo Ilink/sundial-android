@@ -50,7 +50,7 @@ public class SundialWallpaperService extends WallpaperService {
         private int screenHeight;
         private double lat;
         private double lng;
-        private int celestialOffset = 250;
+        private int celestialOffset = 400;
 
         private Bitmap moonBitmap;
         private Bitmap sunBitmap;
@@ -132,7 +132,7 @@ public class SundialWallpaperService extends WallpaperService {
                 screenHeight = c.getHeight();
                 aspectRatio = (double) screenWidth / (double) screenHeight;
                 double scale = screenWidth / bgBitmap.getWidth();
-                // (int) Math.round(bgBitmap.getHeight() *scale)
+                // this could have fixed-aspect ratio scaling
                 bgBitmapSmall =  Bitmap.createScaledBitmap(bgBitmap, 
                     screenWidth, 
                     screenHeight, 
@@ -142,19 +142,19 @@ public class SundialWallpaperService extends WallpaperService {
                 int sec = now.get(Calendar.SECOND);
                 int min = now.get(Calendar.MINUTE);
                 int hour = now.get(Calendar.HOUR_OF_DAY); // 24h format
-                hour = (int) i;
+                // hour = (int) i;
 
                 double[] sunPos = getSunPos(hour, min, sec, lat, lng);
                 double[] moonPos = getMoonPos(hour, min, sec, lat, lng);
 
                 // p.setDither(true);
                 // p.setAntiAlias(true);
-                p.setTextSize(20);
+                // p.setTextSize(20);
                 double midpoint = c.getWidth() / 2.0;
 
                 int moonX = (int) Math.round(moonPos[1] / 360.0 * screenWidth);
                 int moonY = (int) Math.round(moonPos[0] / 90.0 * (screenHeight-celestialOffset));
-                moonY = screenHeight - moonY;
+                moonY = screenHeight - moonY - celestialOffset;
 
                 int sunX = (int) Math.round(sunPos[1] / 360.0 * screenWidth);
                 int sunY = (int) Math.round(sunPos[0] / 90.0 * (screenHeight-celestialOffset));
