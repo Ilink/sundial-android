@@ -9,7 +9,6 @@ import android.graphics.PixelFormat;
 import android.graphics.BitmapFactory;
 import android.graphics.*;
 import android.graphics.drawable.*;
-import android.graphics.Shader.*;
 import android.os.Handler;
 import android.service.wallpaper.WallpaperService;
 import android.view.SurfaceHolder;
