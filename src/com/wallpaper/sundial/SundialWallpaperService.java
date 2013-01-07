@@ -7,6 +7,9 @@ import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.graphics.PixelFormat;
 import android.graphics.BitmapFactory;
+import android.graphics.*;
+import android.graphics.drawable.*;
+import android.graphics.Shader.*;
 import android.os.Handler;
 import android.service.wallpaper.WallpaperService;
 import android.view.SurfaceHolder;
@@ -47,11 +50,15 @@ public class SundialWallpaperService extends WallpaperService {
         private int screenHeight;
         private double lat;
         private double lng;
+        private int celestialOffset = 250;
+
         private Bitmap moonBitmap;
         private Bitmap sunBitmap;
         private Bitmap bgBitmap;
         private Bitmap bgBitmapSmall;
         private Bitmap moonBitmapSmall;
+        private GradientDrawable bgGrad;
+
         private Paint p;
 
         private LocationManager mgr = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -81,13 +88,13 @@ public class SundialWallpaperService extends WallpaperService {
         public void onCreate(SurfaceHolder surfaceHolder)
         {
             update(null);
-            // getWindow().setFormat(PixelFormat.RGBA_8888);
-            // getWindow().addFlags(WindowManager.LayoutParams.FLAG_DITHER);
-            surfaceHolder.setFormat(android.graphics.PixelFormat.RGBA_8888);
+            surfaceHolder.setFormat(PixelFormat.RGBA_8888);
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-            // options.inDither = true;
-            // Bitmap gradient = BitmapFactory.decodeResource(getResources(), R.drawable.gradient, options);
+
+            
+            int colors[] = {0xFFEEFFFF, 0xFF2F3B47};
+            bgGrad = new GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP, colors);
 
             p = new Paint(){
                 {
@@ -124,7 +131,12 @@ public class SundialWallpaperService extends WallpaperService {
                 screenWidth = c.getWidth();
                 screenHeight = c.getHeight();
                 aspectRatio = (double) screenWidth / (double) screenHeight;
-                bgBitmapSmall =  Bitmap.createScaledBitmap(bgBitmap, (int) Math.round(bgBitmap.getWidth() * aspectRatio), (int) Math.round(bgBitmap.getHeight() * aspectRatio), false);
+                double scale = screenWidth / bgBitmap.getWidth();
+                // (int) Math.round(bgBitmap.getHeight() *scale)
+                bgBitmapSmall =  Bitmap.createScaledBitmap(bgBitmap, 
+                    screenWidth, 
+                    screenHeight, 
+                    false);
 
                 Calendar now = Calendar.getInstance(TimeZone.getDefault());
                 int sec = now.get(Calendar.SECOND);
@@ -141,18 +153,26 @@ public class SundialWallpaperService extends WallpaperService {
                 double midpoint = c.getWidth() / 2.0;
 
                 int moonX = (int) Math.round(moonPos[1] / 360.0 * screenWidth);
-                int moonY = (int) Math.round(moonPos[0] / 90.0 * screenHeight);
+                int moonY = (int) Math.round(moonPos[0] / 90.0 * (screenHeight-celestialOffset));
                 moonY = screenHeight - moonY;
 
                 int sunX = (int) Math.round(sunPos[1] / 360.0 * screenWidth);
-                int sunY = (int) Math.round(sunPos[0] / 90.0 * screenHeight);
-                sunY = screenHeight - sunY;
+                int sunY = (int) Math.round(sunPos[0] / 90.0 * (screenHeight-celestialOffset));
+                sunY = screenHeight - sunY - celestialOffset;
 
                 // Log.v("com.wallpaper.sundial", "android log: alt " + moonPos[0] + " azi "+ moonPos[1] + "i: "+i);
+
+                Log.v("com.wallpaper.sundial", "aspect ratio: "+aspectRatio);
+
+                // Drawing
+                ////////////////////////////
 
                 p.setColor(Color.BLACK);
                 c.drawRect(0, 0, c.getWidth(), c.getHeight(), p);
                 p.setColor(Color.WHITE);
+
+                bgGrad.setBounds(0,0,screenWidth,screenHeight);
+                bgGrad.draw(c);
 
                 moonX = (int) Math.round(moonX - moonBitmap.getWidth()/2.0);
                 moonY = (int) Math.round(moonY - moonBitmap.getHeight()/2.0);
