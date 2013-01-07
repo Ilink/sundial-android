@@ -84,6 +84,19 @@ public class SundialWallpaperService extends WallpaperService {
             }
         }
 
+        private Point scaleCelestialPosition(Bitmap img, double x, double y, int screenWidth, int screenHeight){
+            if(y < 0.0){
+                return new Point(-100, -100);
+            } else {
+                int newX = (int) Math.round(x / 360.0 * screenWidth);
+                int newY = (int) Math.round(y / 90.0 * (screenHeight-celestialOffset));
+                newY = screenHeight - newY - celestialOffset;
+                newX = (int) Math.round(newX - img.getWidth()/2.0);
+                newY = (int) Math.round(newY - img.getWidth()/2.0);
+                return new Point(newX, newY);
+            }
+        }
+
         @Override
         public void onCreate(SurfaceHolder surfaceHolder)
         {
@@ -143,6 +156,7 @@ public class SundialWallpaperService extends WallpaperService {
                 int min = now.get(Calendar.MINUTE);
                 int hour = now.get(Calendar.HOUR_OF_DAY); // 24h format
                 // hour = (int) i;
+                // hour = 18;
 
                 double[] sunPos = getSunPos(hour, min, sec, lat, lng);
                 double[] moonPos = getMoonPos(hour, min, sec, lat, lng);
@@ -150,7 +164,10 @@ public class SundialWallpaperService extends WallpaperService {
                 // p.setDither(true);
                 // p.setAntiAlias(true);
                 // p.setTextSize(20);
-                double midpoint = c.getWidth() / 2.0;
+                // double midpoint = c.getWidth() / 2.0;
+
+                Point moon = scaleCelestialPosition(moonBitmap, moonPos[1], moonPos[0], screenWidth, screenHeight);
+                Point sun = scaleCelestialPosition(sunBitmap, sunPos[1], sunPos[0], screenWidth, screenHeight);
 
                 int moonX = (int) Math.round(moonPos[1] / 360.0 * screenWidth);
                 int moonY = (int) Math.round(moonPos[0] / 90.0 * (screenHeight-celestialOffset));
@@ -160,9 +177,10 @@ public class SundialWallpaperService extends WallpaperService {
                 int sunY = (int) Math.round(sunPos[0] / 90.0 * (screenHeight-celestialOffset));
                 sunY = screenHeight - sunY - celestialOffset;
 
-                // Log.v("com.wallpaper.sundial", "android log: alt " + moonPos[0] + " azi "+ moonPos[1] + "i: "+i);
+                Log.v("com.wallpaper.sundial", "android log: moon alt " + moonPos[0] + " moon azi "+ moonPos[1] + "i: "+i +"\n");
+                Log.v("com.wallpaper.sundial", "android log: sun alt " + sunPos[0] + " sun azi "+ sunPos[1] + "i: "+i +"\n");
 
-                Log.v("com.wallpaper.sundial", "aspect ratio: "+aspectRatio);
+
 
                 // Drawing
                 ////////////////////////////
@@ -176,11 +194,11 @@ public class SundialWallpaperService extends WallpaperService {
 
                 moonX = (int) Math.round(moonX - moonBitmap.getWidth()/2.0);
                 moonY = (int) Math.round(moonY - moonBitmap.getHeight()/2.0);
-                c.drawBitmap(moonBitmap, moonX, moonY, p);
+                c.drawBitmap(moonBitmap, moon.x, moon.y, p);
 
                 sunX = (int) Math.round(sunX - sunBitmap.getWidth()/2.0);
                 sunY = (int) Math.round(sunY - sunBitmap.getHeight()/2.0);
-                c.drawBitmap(sunBitmap, sunX, sunY, p);
+                c.drawBitmap(sunBitmap, sun.x, sun.y, p);
 
                 int bgY = c.getHeight() - bgBitmapSmall.getHeight();
                 c.drawBitmap(bgBitmapSmall, 0, bgY, p);
