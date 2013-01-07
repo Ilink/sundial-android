@@ -1,5 +1,8 @@
 package com.wallpaper.sundial;
 
+import java.util.List;
+import java.util.Calendar;
+import java.util.TimeZone;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -7,24 +10,19 @@ import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.graphics.PixelFormat;
 import android.graphics.BitmapFactory;
-import android.graphics.*;
-import android.graphics.drawable.*;
+import android.graphics.drawable.GradientDrawable;
+import android.os.Bundle;
 import android.os.Handler;
 import android.service.wallpaper.WallpaperService;
-import android.view.SurfaceHolder;
-import android.os.Bundle;
 import android.content.Context;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import java.util.List;
-import java.util.Calendar;
-import java.util.TimeZone;
 import android.util.Log;
+import android.view.SurfaceHolder;
 import android.view.Display;
 import android.view.WindowManager;
-// import java.lang.Math;
 
 public class SundialWallpaperService extends WallpaperService {
 
@@ -33,8 +31,8 @@ public class SundialWallpaperService extends WallpaperService {
         return new SundialWallpaperEngine();
     }
 
-    public native double[]  getSunPos(int hour, int min, int sec, double lat, double lng);
-    public native double[]  getMoonPos(int hour, int min, int sec, double lat, double lng);
+    public native double[] getSunPos(int hour, int min, int sec, double lat, double lng);
+    public native double[] getMoonPos(int hour, int min, int sec, double lat, double lng);
 
     static {
         System.loadLibrary("sundial");
@@ -43,7 +41,7 @@ public class SundialWallpaperService extends WallpaperService {
     private class SundialWallpaperEngine extends Engine {
         private boolean mVisible = false;
         private final Handler mHandler = new Handler();
-        private double i = 0;
+        private double i = 0.0;
         private double aspectRatio;
         private int screenWidth;
         private int screenHeight;
@@ -57,7 +55,6 @@ public class SundialWallpaperService extends WallpaperService {
         private Bitmap bgBitmapSmall;
         private Bitmap moonBitmapSmall;
         private GradientDrawable bgGrad;
-
         private Paint p;
 
         private LocationManager mgr = (LocationManager) getSystemService(LOCATION_SERVICE);
