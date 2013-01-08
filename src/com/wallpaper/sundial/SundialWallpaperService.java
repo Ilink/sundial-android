@@ -78,7 +78,36 @@ public class SundialWallpaperService extends WallpaperService {
             }
         }
 
+        // as sun gets a bit lower (after it sets) the moon gets more and more visible
+        private double getMoonOpacity(double x, double y, int hour, int min, int sec){
+            Log.v("com.wallpaper.sundial", "moon opacity pos: "+x+", "+y);
+
+            int setStart = 0;
+            int setEnd = -2;
+            if(y < setStart){
+                if(y < setEnd){
+                    Log.v("com.wallpaper.sundial", "moon opacity:"+1.0);
+                    return 1.0;
+                } else {
+                    // double time = hour/24 + min/60 + sec/60/60;
+                    double yScale = y / setEnd;
+                    Log.v("com.wallpaper.sundial", "moon opacity:"+ yScale);
+
+                    return yScale;
+                }
+            } else {
+                return 0.0;
+            }
+        }
+
+        private int[] getBgColors(int hour, int min, int sec){
+            int[] colors = {0,0};
+
+            return colors;
+        }
+
         private Point scaleCelestialPosition(Bitmap img, double x, double y, int screenWidth, int screenHeight){
+
             if(y < 0.0){
                 return new Point(-100, -100);
             } else {
@@ -89,6 +118,10 @@ public class SundialWallpaperService extends WallpaperService {
                 newY = (int) Math.round(newY - img.getWidth()/2.0);
                 return new Point(newX, newY);
             }
+        }
+
+        private boolean isVisible(Point p){
+            return p.y > 0;
         }
 
         @Override
@@ -182,6 +215,8 @@ public class SundialWallpaperService extends WallpaperService {
                     double[] sunPos = getSunPos(hour, min, sec, lat, lng);
                     double[] moonPos = getMoonPos(hour, min, sec, lat, lng);
 
+                    double moonOpacity = getMoonOpacity(sunPos[1], sunPos[0], hour, min, sec);
+
                     Point moon = scaleCelestialPosition(moonBitmap, moonPos[1], moonPos[0], screenWidth, screenHeight);
                     Point sun = scaleCelestialPosition(sunBitmap, sunPos[1], sunPos[0], screenWidth, screenHeight);
 
@@ -198,10 +233,14 @@ public class SundialWallpaperService extends WallpaperService {
                     bgGrad.setBounds(0,0,screenWidth,screenHeight);
                     bgGrad.draw(c);
 
-                    c.drawBitmap(moonBitmap, moon.x, moon.y, p);
-                    c.drawBitmap(sunBitmap, sun.x, sun.y, p);
-
-                    // int bgY = c.getHeight() - bgBitmapSmall.getHeight();
+                    if(isVisible(moon)){
+                        p.setAlpha((int) Math.round(moonOpacity*255));
+                        c.drawBitmap(moonBitmap, moon.x, moon.y, p);
+                        p.setAlpha(255);
+                    }
+                    if(isVisible(sun)){
+                        c.drawBitmap(sunBitmap, sun.x, sun.y, p);
+                    }
                     c.drawBitmap(bgBitmapSmall, 0, 0, p);
                 }
             } finally {
@@ -213,8 +252,8 @@ public class SundialWallpaperService extends WallpaperService {
             if (mVisible) {
                 mHandler.postDelayed(mUpdateDisplay, 100);
             }
-            i += 0.5;
-            if( i > 24) i = 0;
+            // i += 0.5;
+            // if( i > 24) i = 0;
         }
     }
 }
