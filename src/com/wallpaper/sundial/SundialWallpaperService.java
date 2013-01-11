@@ -42,7 +42,7 @@ public class SundialWallpaperService extends WallpaperService {
     private class SundialWallpaperEngine extends Engine {
         private boolean mVisible = false;
         private final Handler mHandler = new Handler();
-        private double i = 0.0;
+        private double i = 16.0;
         private double j = 0.0;
         private double aspectRatio;
         private int screenWidth;
@@ -93,7 +93,7 @@ public class SundialWallpaperService extends WallpaperService {
                     return 1.0;
                 } else {
                     // double time = hour/24 + min/60 + sec/60/60;
-                    double yScale = y / setEnd;
+                    double yScale = (setEnd-15) / y;
                     Log.v("com.wallpaper.sundial", "moon opacity:"+ yScale);
 
                     return yScale;
@@ -111,16 +111,19 @@ public class SundialWallpaperService extends WallpaperService {
         }
 
         private double[] scaleCelestialPosition(Bitmap img, double x, double y, int screenWidth, int screenHeight){
+            // double newX = x / 360.0 * screenWidth;
+            // double newY = y / 90.0 * (screenHeight-celestialOffset);
             double newX = x / 360.0 * screenWidth;
-            double newY = y / 90.0 * (screenHeight-celestialOffset);
+            double newY = y / 90.0 - celestialOffset);
             newY = newY + celestialOffset;
             newX = newX - img.getWidth()/2.0;
             newY = newY - img.getWidth()/2.0;
-            if(newY < 0.0){
-                return new double[] {-100, -100};
-            } else {
-                return new double[] {newX, newY};
-            }
+            return new double[] {newX, newY};
+            // if(newY < 0.0){
+            //     return new double[] {-100, -100};
+            // } else {
+            //     return new double[] {newX, newY};
+            // }
         }
 
         // Device represents 0,0 as the top left corner of the screen
@@ -158,7 +161,7 @@ public class SundialWallpaperService extends WallpaperService {
             sunBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.sun, options);
             bgBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.bg, options);
 
-            setStart = 270;
+            setStart = 200;
             setEnd = 150;
 
             mgr.requestLocationUpdates(LocationManager.GPS_PROVIDER,
@@ -280,7 +283,7 @@ public class SundialWallpaperService extends WallpaperService {
             }
 
             // Time mock
-            j+=30;
+            j+=5;
             if(j > 60) { 
                 j = 0;
                 i++;
